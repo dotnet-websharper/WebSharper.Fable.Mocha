@@ -1,0 +1,22 @@
+type file
+id WebSharper.Fable.Mocha
+authors IntelliFactory
+projectUrl https://websharper.com/
+repositoryType git
+repositoryUrl https://github.com/dotnet-websharper/WebSharper.Fable.Mocha/
+licenseUrl https://github.com/dotnet-websharper/WebSharper.Fable.Mocha/blob/master/LICENSE.md
+iconUrl https://github.com/dotnet-websharper/core/raw/websharper50/tools/WebSharper.png
+description
+    WebSharper Proxy for Fable's Browser.%TEMP%
+tags
+    WebSharper Fable FSharp CSharp JavaScript WebAPI %TEMP%
+dependencies
+    framework: netstandard2.0
+        WebSharper ~> LOCKEDVERSION:[3]
+        Fable.Mocha == 2.17.0
+files
+    ../websharper/WebSharper.Fable.Mocha/bin/Release/netstandard2.0/WebSharper.Fable.Mocha.dll ==> lib/netstandard2.0
+
+references
+    WebSharper.Fable.Mocha.dll
+

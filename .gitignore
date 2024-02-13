@@ -203,3 +203,9 @@ dist/*
 #ionide
 .ionide/
 *.fs.js
+
+websharper.log
+Content/
+build/
+log.log
+.paket

@@ -1,8 +1,22 @@
 namespace Fable.Mocha
 
 open System
-open Fable.Core.Testing
 open Fable.Core
+#if !JAVASCRIPT
+open Fable.Core.Testing
+#endif
+
+#if JAVASCRIPT
+module WSEquality =
+
+    let areEqual (actual, expected, msg) =
+        if not <| Unchecked.equals actual expected then
+            raise <| Exception(msg)
+
+    let areNotEqual (actual, expected, msg) =
+        if Unchecked.equals actual expected then
+            raise <| Exception(msg)
+#endif
 
 type FocusState =
     | Normal
@@ -108,19 +122,34 @@ module Env =
 module Expect =
     let inline equal (actual: 'a) (expected: 'a) msg : unit =
         if actual = expected || not (Env.isBrowser()) then
-            Assert.AreEqual(actual, expected, msg)
+            #if JAVASCRIPT 
+                WSEquality.areEqual(actual, expected, msg)
+            #else
+                Assert.AreEqual(actual, expected, msg)
+            #endif
         else
-            let valueType = actual.GetType()
-            let primitiveTypes = [ typeof<int>; typeof<bool>; typeof<double>; typeof<string>; typeof<decimal>; typeof<Guid> ]
-            let errorMsg =
-                if List.contains valueType primitiveTypes then
-                    sprintf "<span style='color:black'>Expected:</span> <br /><div style='margin-left:20px; color:crimson'>%s</div><br /><span style='color:black'>Actual:</span> </br ><div style='margin-left:20px;color:crimson'>%s</div><br /><span style='color:black'>Message:</span> </br ><div style='margin-left:20px; color:crimson'>%s</div>" (string expected) (string actual) msg
-                else
+            #if JAVASCRIPT                
+                let errorMsg =
                     sprintf "<span style='color:black'>Expected:</span> <br /><div style='margin-left:20px; color:crimson'>%A</div><br /><span style='color:black'>Actual:</span> </br ><div style='margin-left:20px;color:crimson'>%A</div><br /><span style='color:black'>Message:</span> </br ><div style='margin-left:20px; color:crimson'>%s</div>" expected actual msg
 
-            raise (Exception(errorMsg))
+                raise (Exception(errorMsg))
+            #else
+                let valueType = actual.GetType()
+                let primitiveTypes = [ typeof<int>; typeof<bool>; typeof<double>; typeof<string>; typeof<decimal>; typeof<Guid> ]
+                let errorMsg =
+                    if List.contains valueType primitiveTypes then
+                        sprintf "<span style='color:black'>Expected:</span> <br /><div style='margin-left:20px; color:crimson'>%s</div><br /><span style='color:black'>Actual:</span> </br ><div style='margin-left:20px;color:crimson'>%s</div><br /><span style='color:black'>Message:</span> </br ><div style='margin-left:20px; color:crimson'>%s</div>" (string expected) (string actual) msg
+                    else
+                        sprintf "<span style='color:black'>Expected:</span> <br /><div style='margin-left:20px; color:crimson'>%A</div><br /><span style='color:black'>Actual:</span> </br ><div style='margin-left:20px;color:crimson'>%A</div><br /><span style='color:black'>Message:</span> </br ><div style='margin-left:20px; color:crimson'>%s</div>" expected actual msg
+
+                raise (Exception(errorMsg))
+            #endif
     let notEqual actual expected msg : unit =
-        Assert.NotEqual(actual, expected, msg)
+        #if JAVASCRIPT
+            WSEquality.areNotEqual(actual, expected, msg)
+        #else
+            Assert.NotEqual(actual, expected, msg)
+        #endif
     let private isNull' cond =
         match cond with
         | null -> true
@@ -239,12 +268,21 @@ module Expect =
         elif Double.IsInfinity expected then
             failtestf "%s. Expected expected to not be infinity, but it was." message
         elif Accuracy.areClose accuracy actual expected |> not then
-            failtestf
-                "%s. Expected difference to be less than %.20g for accuracy {absolute=%.20g; relative=%.20g}, but was %.20g. actual=%.20g expected=%.20g"
-                message (Accuracy.areCloseRhs accuracy actual expected)
-                accuracy.absolute accuracy.relative
-                (Accuracy.areCloseLhs actual expected)
-                actual expected
+            #if JAVASCRIPT
+                failtestf
+                    "%s. Expected difference to be less than %f for accuracy {absolute=%f; relative=%f}, but was %f. actual=%f expected=%f"
+                    message (Accuracy.areCloseRhs accuracy actual expected)
+                    accuracy.absolute accuracy.relative
+                    (Accuracy.areCloseLhs actual expected)
+                    actual expected
+            #else
+                failtestf
+                    "%s. Expected difference to be less than %.20g for accuracy {absolute=%.20g; relative=%.20g}, but was %.20g. actual=%.20g expected=%.20g"
+                    message (Accuracy.areCloseRhs accuracy actual expected)
+                    accuracy.absolute accuracy.relative
+                    (Accuracy.areCloseLhs actual expected)
+                    actual expected
+            #endif
 
     /// Expects `actual` to be less than `expected` or to be within a
     /// given `accuracy`.
@@ -294,13 +332,23 @@ module private Html =
     let div attrs children = { Tag = "div"; Attributes = attrs; Content = ""; Children = children }
 
 module Mocha =
+    #if !JAVASCRIPT
     let [<Global>] private describe (name: string) (f: unit->unit) = jsNative
     let [<Global>] private it (msg: string) (f: unit->unit) = jsNative
-    let [<Emit("it.skip($0, $1)")>] private itSkip (msg: string) (f: unit->unit) = jsNative
+    let [<Emit("it.skip($0, $1)");>] private itSkip (msg: string) (f: unit->unit) = jsNative
     let [<Emit("it.only($0, $1)")>] private itOnly (msg: string) (f: unit->unit) = jsNative
     let [<Emit("it($0, $1)")>] private itAsync msg (f: unit -> JS.Promise<unit>) = jsNative
     let [<Emit("it.skip($0, $1)")>] private itSkipAsync msg (f: unit -> JS.Promise<unit>) = jsNative
     let [<Emit("it.only($0, $1)")>] private itOnlyAsync msg (f: unit -> JS.Promise<unit>) = jsNative
+    #else
+    let [<Global>] private describe (name: string) (f: unit->unit) = jsNative
+    let [<Global>] private it (msg: string) (f: unit->unit) = jsNative
+    let [<WebSharper.Inline("$global.it.skip($0, $1)");>] private itSkip (msg: string) (f: unit->unit) = jsNative
+    let [<WebSharper.Inline("$global.it.only($0, $1)")>] private itOnly (msg: string) (f: unit->unit) = jsNative
+    let [<WebSharper.Inline("$global.it($0, $1)")>] private itAsync msg (f: unit -> JS.Promise<unit>) = jsNative
+    let [<WebSharper.Inline("$global.it.skip($0, $1)")>] private itSkipAsync msg (f: unit -> JS.Promise<unit>) = jsNative
+    let [<WebSharper.Inline("$global.it.only($0, $1)")>] private itOnlyAsync msg (f: unit -> JS.Promise<unit>) = jsNative
+    #endif
 
     let rec isFocused (test: TestCase ) =
         match test with
@@ -543,7 +591,11 @@ module Mocha =
                 Html.div [ ] [ header ])
 
     let private configureAsyncTest (test: Async<unit>) =
+    #if JAVASCRIPT
+        fun () -> test |> WebSharper.JavaScript.Promise.OfAsync |> WebSharper.JavaScript.Pervasives.As<JS.Promise<unit>>
+    #else
         fun () -> test |> Async.StartAsPromise
+    #endif
 
     let rec invalidateTestResults() =
         async {
@@ -590,7 +642,9 @@ module Mocha =
                     |> List.iter (runViaMocha)
 
     let runViaDotnet (test: TestCase) =
+        #if !JAVASCRIPT
         raise (NotImplementedException("Currently not implemented, use Expecto for now."))
+        #endif
         1
 
     let rec runTests (test: TestCase) : int=

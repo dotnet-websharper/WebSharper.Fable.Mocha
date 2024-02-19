@@ -672,7 +672,7 @@ module Mocha =
         1
 
     let rec runTests (test: TestCase) : int=
-        #if FABLE_COMPILER
+        #if FABLE_COMPILER || JAVASCRIPT
         if Env.insideBrowser || Env.insideWorker then
             let hasFocusedTests = isFocused test
             let renderedTests = renderBrowserTests hasFocusedTests [test] 0

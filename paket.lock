@@ -5,18 +5,18 @@ NUGET
   remote: https://api.nuget.org/v3/index.json
     Fable.Core (3.0)
       FSharp.Core (>= 4.5.2)
-    FSharp.Core (8.0.101)
+    FSharp.Core (8.0.200)
     System.Reflection.Emit.ILGeneration (4.7) - restriction: || (&& (== net6.0) (< netcoreapp2.0) (< netstandard2.1)) (&& (== net6.0) (< netstandard2.0)) (&& (== net6.0) (< portable-net45+wp8)) (&& (== net6.0) (>= uap10.1)) (== netstandard2.0)
     System.Reflection.Emit.Lightweight (4.7)
       System.Reflection.Emit.ILGeneration (>= 4.7) - restriction: || (&& (== net6.0) (< netcoreapp2.0) (< netstandard2.1)) (&& (== net6.0) (< netstandard2.0)) (&& (== net6.0) (< portable-net45+wp8)) (&& (== net6.0) (>= uap10.1)) (== netstandard2.0)
   remote: https://nuget.pkg.github.com/dotnet-websharper/index.json
-    WebSharper (7.0.6.416-beta4)
+    WebSharper (7.0.6.420-beta4)
       FSharp.Core (>= 6.0)
       System.Reflection.Emit.Lightweight (>= 4.7)
-    WebSharper.Fable.Core (7.0.0.411-beta4)
+    WebSharper.Fable.Core (7.0.0.418-beta4)
       WebSharper (>= 7.0.6 < 7.1)
-    WebSharper.FSharp (7.0.6.416-beta4)
-      WebSharper (7.0.6.416-beta4)
+    WebSharper.FSharp (7.0.6.420-beta4)
+      WebSharper (7.0.6.420-beta4)
 
 GROUP wsbuild
 

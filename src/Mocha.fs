@@ -112,10 +112,18 @@ module Test =
 
 [<RequireQualifiedAccess>]
 module Env =
+    #if JAVASCRIPT
+    [<WebSharper.Inline("new Function(\"try {return this===window;}catch(e){ return false;}\")")>]
+    #else
     [<Emit("new Function(\"try {return this===window;}catch(e){ return false;}\")")>]
+    #endif
     let isBrowser : unit -> bool = jsNative
     let insideBrowser = isBrowser()
+    #if JAVASCRIPT
+    [<WebSharper.Inline("typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope")>]
+    #else
     [<Emit("typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope")>]
+    #endif
     let insideWorker :  bool = jsNative
 
 [<RequireQualifiedAccess>]
@@ -303,7 +311,22 @@ module private Html =
     }
 
     type IDocElement = interface end
-
+    #if JAVASCRIPT
+    [<WebSharper.Inline("$global.document.createElement($0)")>]
+    let createElement (tag: string) : IDocElement = jsNative
+    [<WebSharper.Inline("$2.setAttribute($0, $1)")>]
+    let setAttr (name: string) (value: string) (el: IDocElement) : unit = jsNative
+    [<WebSharper.Inline("$0.appendChild($1)")>]
+    let appendChild (parent: IDocElement) (child: IDocElement) : unit = jsNative
+    [<WebSharper.Inline("$global.document.getElementById($0)")>]
+    let findElement (id: string) : IDocElement = jsNative
+    [<WebSharper.Inline("$global.document.getElementsByClassName($0).length")>]
+    let countElementsByClass (value: string) : int = jsNative
+    [<WebSharper.Inline("$global.document.body")>]
+    let body : IDocElement = jsNative
+    [<WebSharper.Inline("$1.innerHTML = $0")>]
+    let setInnerHtml (html: string) (el: IDocElement) : unit = jsNative
+    #else
     [<Emit("document.createElement($0)")>]
     let createElement (tag: string) : IDocElement = jsNative
     [<Emit("$2.setAttribute($0, $1)")>]
@@ -318,6 +341,7 @@ module private Html =
     let body : IDocElement = jsNative
     [<Emit("$1.innerHTML = $0")>]
     let setInnerHtml (html: string) (el: IDocElement) : unit = jsNative
+    #endif
     let rec createNode (node: Node) =
         let el = createElement node.Tag
         setInnerHtml node.Content el

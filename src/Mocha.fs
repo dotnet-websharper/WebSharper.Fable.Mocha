@@ -365,8 +365,8 @@ module Mocha =
     let [<Emit("it.skip($0, $1)")>] private itSkipAsync msg (f: unit -> JS.Promise<unit>) = jsNative
     let [<Emit("it.only($0, $1)")>] private itOnlyAsync msg (f: unit -> JS.Promise<unit>) = jsNative
     #else
-    let [<Global>] private describe (name: string) (f: unit->unit) = jsNative
-    let [<Global>] private it (msg: string) (f: unit->unit) = jsNative
+    let [<WebSharper.Inline("$global.describe($0, $1)")>] private describe (name: string) (f: unit->unit) = jsNative
+    let [<WebSharper.Inline("$global.it($0, $1)")>] private it (msg: string) (f: unit->unit) = jsNative
     let [<WebSharper.Inline("$global.it.skip($0, $1)");>] private itSkip (msg: string) (f: unit->unit) = jsNative
     let [<WebSharper.Inline("$global.it.only($0, $1)")>] private itOnly (msg: string) (f: unit->unit) = jsNative
     let [<WebSharper.Inline("$global.it($0, $1)")>] private itAsync msg (f: unit -> JS.Promise<unit>) = jsNative

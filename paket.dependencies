@@ -8,7 +8,7 @@ storage: none
 
 
 nuget FSharp.Core
-nuget Fable.Core 3.0.0
+nuget Fable.Core 4.0.0
 nuget WebSharper prerelease
 nuget WebSharper.Fable.Core prerelease
 nuget WebSharper.FSharp prerelease
